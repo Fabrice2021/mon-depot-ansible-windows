@@ -1,0 +1,17 @@
+---
+- name: Application des correctifs de securite Windows
+  hosts: windows_servers
+  gather_facts: no
+  tasks:
+    - name: Recherche et installation des mises a jour de securite critiques
+      ansible.windows.win_updates:
+        category_names:
+          - SecurityUpdates
+          - CriticalUpdates
+        reboot: yes
+        reboot_timeout: 3600
+      register: update_result
+
+    - name: Affichage du resultat de l execution
+      ansible.builtin.debug:
+        msg: "Serveur mis a jour. Nombre de patchs installes : {{ update_result.found_update_count }}"
