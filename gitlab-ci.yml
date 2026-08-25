@@ -1,0 +1,24 @@
+stages:
+  - test_connexion
+  - deploiement_patchs
+
+# Étape de validation pour s'assurer que tous les serveurs répondent avant de patcher
+ping_windows:
+  stage: test_connexion
+  image: python:3.10
+  script:
+    - pip install ansible pywinrm
+    - ansible windows_servers -i inventory.ini -m win_ping
+
+# Étape d'application des patchs de sécurité
+apply_security_updates:
+  stage: deploiement_patchs
+  image: python:3.10
+  script:
+    - pip install ansible pywinrm
+    - ansible-playbook -i inventory.ini playbook.yml
+  dependencies:
+    - ping_windows
+  only:
+    - schedules  # Permet d'éviter que le pipeline s'exécute à chaque simple commit, réservé aux planifications.
+    - web        # Permet aussi de déclencher manuellement depuis l'interface GitLab
